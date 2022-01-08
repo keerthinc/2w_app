@@ -1,0 +1,90 @@
+import React,{useState,useEffect} from 'react';
+import { TextInput,Button,Card,Title} from 'react-native-paper';
+import {View,Text,FlatList,Image, ScrollView} from 'react-native'
+import Header from './Header'
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { reportLogBoxError } from 'react-native/Libraries/LogBox/Data/LogBoxData';
+
+
+
+const Home = (props)=>{
+    const [info,setInfo] = useState({
+        name:"loading !!",
+        temp:"loading",
+        humidity:"loading",
+        desc:"loading",
+        icon:"loading"
+    })
+    useEffect(()=>{
+       getWeather()
+    },[])
+    const getWeather = async ()=>{
+        let MyCity = await AsyncStorage.getItem("newcity")
+        if(!MyCity){
+           const {city} = props.route.params
+           MyCity = city  
+        }
+       
+
+     fetch(`https://api.openweathermap.org/data/2.5/weather?q=${MyCity}&APPID=dfa19b47b22370fd04f98089c60226e0&units=metric`)
+     .then(data=>data.json())
+     .then(results=>{
+        setInfo({
+            name:results.name,
+            temp:results.main.temp,
+            humidity:results.main.humidity,
+            desc:results.weather[0].description,
+            icon:results.weather[0].icon,
+        })
+     })
+    }
+    if(props.route.params.city != "london"){
+        getWeather()
+    }
+    return(
+ 
+        <View style={{flex: 3}}>
+           <View style={{alignItems:"center"}}>
+               <Title 
+               style={{
+                   color:'black',
+                 marginTop:60,
+                   fontSize:30
+               }}>
+                   {info.name}
+               </Title>
+               <Image 
+               style={{
+                   width:120,
+                   height:120
+               }}
+               source={{uri:"https://openweathermap.org/img/w/"+info.icon+".png"}}
+               
+               />
+
+           </View>
+
+           <Card style={cardStyle}>
+           <Title style={{color:"#ffff"}}>Temperature - {info.temp}</Title>
+           </Card>
+           <Card style={cardStyle}>
+           <Title style={{color:"#ffff"}}>Humidity - {info.humidity}</Title>
+           </Card>
+           <Card style={cardStyle}>
+           <Title style={{color:"#ffff"}}>Description-  {info.desc}</Title>
+           </Card>
+
+        </View>
+  
+    )
+}
+
+const cardStyle = {
+    margin:5,
+    padding:12,
+    backgroundColor: 'rgba(0, 0, 0,  0.25)'
+}
+
+
+export default Home
